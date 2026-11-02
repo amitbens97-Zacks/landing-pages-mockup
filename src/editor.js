@@ -72,6 +72,10 @@ export function Editor({ page, onChange, onUndo, onRedo, canUndo, canRedo, pages
       set({ content: { ...page.content, [type]: value } }, next === 0 ? 'חזרה לנוסח המקורי' : 'הכריש כתב נוסח אחר');
     },
     onPhoto: () => setPhotoOpen(true),
+    onSeats: () => {
+      const on = !page.content.offer?.seats?.on;
+      set({ content: setPath(page.content, 'offer.seats.on', on) }, on ? 'מקומות פנויים מופיעים בדף. כדאי לעדכן את המספר' : 'המקומות הפנויים הוסרו');
+    },
     onAddTestimonial: () => {
       const items = [...(page.content.testimonials.items || []), { text: 'כתבו כאן את מה שהלקוח אמר, במילים שלו.', who: 'שם הלקוח, שם העסק' }];
       set({ content: setPath(page.content, 'testimonials.items', items) }, 'נוספה המלצה');

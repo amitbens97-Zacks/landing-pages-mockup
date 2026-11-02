@@ -185,15 +185,16 @@ function SecTools({ x, id, type, sel }) {
     html`${tool('arrow-up', 'למעלה', () => x.onMove(id, -1), !meta.fixed && i > 1)}
       ${tool('arrow-down', 'למטה', () => x.onMove(id, 1), !meta.fixed && i < x.page.sections.length - 2)}
       ${tool('sparkles', 'נוסח אחר', () => x.onRewrite(id, type), !!ALTERNATIVES[type])}
+      ${tool('calendar-check', x.page.content.offer?.seats?.on ? 'בלי מקומות פנויים' : 'מקומות פנויים', () => x.onSeats(), type === 'offer')}
       ${tool('eye-off', 'הסתרה', () => x.onHide(id), !meta.fixed)}`}
   </div>`;
 }
 
 // ---------- the page ----------
 
-export function PageView({ page, editable = false, narrow = false, mid = false, selected, onSelect = () => {}, onEdit = () => {}, onMove, onHide, onRewrite, onPhoto, onAddTestimonial, sticky = true, pages = [] }) {
+export function PageView({ page, editable = false, narrow = false, mid = false, selected, onSelect = () => {}, onEdit = () => {}, onMove, onHide, onRewrite, onPhoto, onAddTestimonial, onSeats, sticky = true, pages = [] }) {
   const th = themeOf(page);
-  const x = { page, editable, narrow, mid, selected, onSelect, onEdit, onMove, onHide, onRewrite, onPhoto, onAddTestimonial, pages };
+  const x = { page, editable, narrow, mid, selected, onSelect, onEdit, onMove, onHide, onRewrite, onPhoto, onAddTestimonial, onSeats, pages };
   const shown = page.sections.filter((s) => editable || !s.hidden);
   return html`<div class="lp-page relative" dir="rtl" style=${{ background: th.bg, color: th.ink, fontFamily: th.body, fontSize: narrow ? '16px' : '18px', lineHeight: 1.6 }}>
     <${PageHeader} x=${x} th=${th} />
@@ -398,7 +399,7 @@ function Offer({ x, th, id }) {
         <p class="font-bold" style=${{ color: th.muted }}>${PRODUCTS.find((p) => p.id === x.page.productId)?.name}</p>
         <p class="my-2 leading-none" style=${{ fontFamily: th.head, fontWeight: 900, fontSize: '52px', color: th.ink }}>${fmt} <span style=${{ fontSize: '28px' }}>₪</span></p>
         <${T} x=${x} sec=${id} path="offer.terms" tag="p" class="mb-5" style=${{ color: th.muted }} />
-        ${o.seats?.on && html`<p class="mb-4 inline-flex items-center gap-2 rounded-full px-3 py-1 text-[15px] font-bold" style=${{ background: th.accentSoft }}><${Icon} name="calendar-check" size=${16} />נשארו ${o.seats.n} מקומות ל${o.seats.month}</p>`}
+        ${o.seats?.on && html`<p class="mb-4 inline-flex items-center gap-2 rounded-full px-3 py-1 text-[15px] font-bold" style=${{ background: th.accentSoft }}><${Icon} name="calendar-check" size=${16} />נשארו <${T} x=${x} sec=${id} path="offer.seats.n" /> מקומות ל<${T} x=${x} sec=${id} path="offer.seats.month" /></p>`}
         <div class="[&>span]:w-full"><${Btn} x=${x} th=${th} path="hero.cta" sec=${id} /></div>
         ${o.guarantee &&
         html`<p class="mt-5 flex items-start gap-2 text-[15px]" style=${{ color: th.muted }}>
