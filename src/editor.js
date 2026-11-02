@@ -4,8 +4,8 @@
 import { html, useState, useEffect, useRef, Icon, cx } from './lib.js';
 import { Button } from './components.js';
 import { Sheet, Field, inputCls, Chips, Tag, DeviceSwitch, BrowserFrame } from './ui.js';
-import { PageView, Thumb, setPath, getPath, mix } from './page.js';
-import { TEMPLATES, FONT_PAIRS, SECTION_TYPES, ALTERNATIVES, BRAND, USER, OLD_LINK, SUBDOMAIN, ROOT_DOMAIN, pageUrl, templateOf } from './data.js';
+import { PageView, Thumb, setPath, getPath, mix, themeOf, BgPhoto } from './page.js';
+import { TEMPLATES, FONT_PAIRS, SECTION_TYPES, ALTERNATIVES, BRAND, USER, OLD_LINK, SUBDOMAIN, ROOT_DOMAIN, BG_PHOTOS, pageUrl, templateOf, bgSrc } from './data.js';
 import { checksOf } from './state.js';
 
 const TABS = [
@@ -22,6 +22,7 @@ export function Editor({ page, onChange, onUndo, onRedo, canUndo, canRedo, pages
   const [device, setDevice] = useState(() => (isPhone() ? 'mobile' : 'desktop'));
   const [tab, setTab] = useState('sections');
   const [photoOpen, setPhotoOpen] = useState(false);
+  const [bgOpen, setBgOpen] = useState(false);
   const [sheet, setSheet] = useState(null);
   const [phone, setPhone] = useState(isPhone());
   const [width, setWidth] = useState(1000);
@@ -72,6 +73,7 @@ export function Editor({ page, onChange, onUndo, onRedo, canUndo, canRedo, pages
       set({ content: { ...page.content, [type]: value } }, next === 0 ? 'חזרה לנוסח המקורי' : 'הכריש כתב נוסח אחר');
     },
     onPhoto: () => setPhotoOpen(true),
+    onBg: () => setBgOpen(true),
     onSeats: () => {
       const on = !page.content.offer?.seats?.on;
       set({ content: setPath(page.content, 'offer.seats.on', on) }, on ? 'מקומות פנויים מופיעים בדף. כדאי לעדכן את המספר' : 'המקומות הפנויים הוסרו');
@@ -146,6 +148,7 @@ export function Editor({ page, onChange, onUndo, onRedo, canUndo, canRedo, pages
 
     ${sheet && html`<${Sheet} title=${TABS.find((t) => t[0] === sheet)[1]} onClose=${() => setSheet(null)}>${panel(sheet)}<//>`}
     ${photoOpen && html`<${PhotoSheet} page=${page} set=${set} onClose=${() => setPhotoOpen(false)} />`}
+    ${bgOpen && html`<${Sheet} title="תמונת רקע" onClose=${() => setBgOpen(false)}><${BgPicker} page=${page} set=${set} onPicked=${() => setBgOpen(false)} /><//>`}
   </div>`;
 }
 
@@ -177,7 +180,7 @@ function SectionsPanel({ page, set, selected, scrollTo, actions }) {
             <span class="fb-chip-ic sketch-chip h-8 w-8 shrink-0"><${Icon} name=${meta.icon} size=${16} /></span>
             <span class="min-w-0">
               <b class="block truncate text-[15px]">${meta.label}</b>
-              ${(s.hidden || empty) && html`<small class="block text-[12px] font-semibold text-muted">${s.hidden ? 'מוסתר' : 'לא יופיע עד שתהיה המלצה'}</small>`}
+              <small class="block truncate text-[12px] font-semibold text-muted">${s.hidden ? 'מוסתר' : empty ? 'לא יופיע עד שתהיה המלצה' : meta.from}</small>
             </span>
           </button>
           ${!meta.fixed &&
@@ -274,6 +277,44 @@ function DesignPanel({ page, set, onPhoto }) {
       <span class="flex-1 text-[13px] text-muted">${page.photo ? 'מופיעה בפתיחה וב"נעים להכיר"' : 'עוד אין תמונה'}</span>
       <${Button} variant="mini" onClick=${onPhoto}>${page.photo ? 'החלפה' : 'הוספה'}<//>
     </div>
+
+    <p class="mb-1.5 mt-5 text-[14px] font-bold">תמונת רקע</p>
+    <${BgPicker} page=${page} set=${set} />
+  </div>`;
+}
+
+// Where the background photo shows in each template.
+const bgWhere = (page) => (['block', 'dark'].includes(templateOf(page.template).hero) ? 'בפתיחה, במסר המרכזי וביצירת קשר' : 'באזור "המסר המרכזי"');
+
+// The background photo: photos for the business field, an upload, or none.
+// Every photo is shown in the main color, the way it appears on the page.
+export function BgPicker({ page, set, onPicked = () => {} }) {
+  const file = useRef();
+  const th = themeOf(page);
+  const pick = (bg, text) => {
+    set({ bg }, text);
+    onPicked();
+  };
+  const uploaded = page.bg && !BG_PHOTOS.some((b) => b.id === page.bg);
+  const tile = (key, on, label, onClick, inner) => html`<button
+    key=${key}
+    type="button"
+    aria-pressed=${on}
+    onClick=${onClick}
+    class=${cx('overflow-hidden rounded-xl border-[1.5px] bg-white text-[12px] font-bold cursor-pointer', on ? 'border-brand-600 ring-2 ring-brand-100' : 'border-line hover:border-brand-300')}
+  >
+    <span class="relative block aspect-[16/10]">${inner}</span>
+    <span class="block truncate px-1 py-1">${label}</span>
+  </button>`;
+  return html`<div>
+    <input ref=${file} type="file" accept="image/*" class="hidden" onChange=${(e) => e.target.files[0] && pick(URL.createObjectURL(e.target.files[0]), 'תמונת הרקע הועלתה')} />
+    <div class="grid grid-cols-3 gap-2">
+      ${BG_PHOTOS.map((b) => tile(b.id, page.bg === b.id, b.label, () => pick(b.id, 'תמונת הרקע עודכנה'), html`<${BgPhoto} th=${th} src=${b.src} tile />`))}
+      ${uploaded && tile('up', true, 'שלך', () => {}, html`<${BgPhoto} th=${th} src=${page.bg} tile />`)}
+      ${tile('upload', false, 'העלאה', () => file.current.click(), html`<span class="absolute inset-0 grid place-items-center bg-canvas text-brand-600"><${Icon} name="upload" size=${20} /></span>`)}
+      ${tile('none', !page.bg, 'בלי תמונה', () => pick(null, 'תמונת הרקע הוסרה'), html`<span class="absolute inset-0" style=${{ background: mix(th.P, '#000000', 0.35) }}></span>`)}
+    </div>
+    <p class="mt-2 text-[12px] text-muted">מופיעה ${bgWhere(page)}, בגוון הצבע הראשי שלך. תמונות שמתאימות לתחום של העסק.</p>
   </div>`;
 }
 

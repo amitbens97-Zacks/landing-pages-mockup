@@ -3,7 +3,10 @@
 //   the main message, pitch, "נעים להכיר" -> "דף המסרים" (step 7)
 //   the offer, bonuses, guarantee, terms  -> "בניית הצעה מנצחת" (step 8)
 //   services and prices                   -> "סל מוצרים" (step 3), the core product's steps
+//   pains, tone, the main message          -> "דף המסרים" (step 7)
+//   objections and answers (the FAQ)      -> "בניית הצעה מנצחת" (step 8)
 //   the photo                             -> uploaded in this step (new), kept on the business
+//   background photos                     -> made by the model for the business field, tinted in the logo color
 //   phone / WhatsApp / email              -> the user's settings
 //   page views and leads                  -> the published pages; every form lead goes to the CRM
 // The mockup's "today" is fixed so every number on the page stays the same.
@@ -22,10 +25,44 @@ export const USER = {
   slogan: 'שיווק שמביא פניות, לא רק לייקים',
   field: 'ייעוץ וליווי שיווק דיגיטלי לעסקי שירות מקומיים',
   audience: 'בעלי עסקי שירות עם 1 עד 5 עובדים',
+  role: 'יועץ שיווק לעסקי שירות קטנים',
   phone: '052-4567890',
   email: 'daniel@example.co.il',
-  photo: 'assets/user/daniel.svg',
+  // Stand-in for the photo the user uploads (Unsplash, free license).
+  photo: 'https://images.unsplash.com/photo-1793059669358-16824127fd06?w=900&h=1080&fit=crop&crop=faces&q=80',
 };
+
+// What the user wrote in "דף המסרים". The page uses these words as they are.
+export const MESSAGES = {
+  problem: 'בעלי עסקים קטנים שורפים תקציב על פרסום בלי אסטרטגיה.',
+  promise: 'אני בונה איתם מערך שיווק שמביא פניות, בתוך 90 יום.',
+  pains: [
+    'משלמים על פרסום כל חודש, ואין מושג מה זה מביא.',
+    'מעלים פוסטים כשיש זמן, והטלפון לא מצלצל.',
+    'כל יועץ אומר משהו אחר, ואין תוכנית אחת ברורה.',
+  ],
+  about: '12 שנים ניהלתי שיווק בחברת צריכה גדולה. ראיתי מקרוב מה עובד כשיש תקציב גדול, והבנתי שאותם עקרונות עובדים גם לעסק של אדם אחד. היום אני מלווה עסקי שירות קטנים, ובונה איתם שיווק שמביא פניות.',
+  tone: 'ישיר וחם, בגוף ראשון, בלי מילים מקצועיות',
+};
+
+// From "בניית הצעה מנצחת": the objections and the user's answers.
+export const OBJECTIONS = [
+  { q: 'למי זה מתאים?', a: 'לעסקי שירות מקומיים עם 1 עד 5 עובדים, שכבר יש להם לקוחות ורוצים פניות באופן קבוע.' },
+  { q: 'כמה זמן אצטרך להשקיע?', a: 'מפגש של שעה בשבוע, ועוד כשעתיים של עבודה בין המפגשים.' },
+  { q: 'צריך תקציב פרסום?', a: 'לא בהתחלה. בונים קודם את הבסיס, ורק אחר כך מחליטים יחד אם ובכמה לפרסם.' },
+];
+
+// Background photos for the business field. In production the model makes them
+// (as today, 16:9); the page shows them in grey, tinted with the logo's main color.
+// Here: Unsplash photos (free license).
+const U = (id) => `https://images.unsplash.com/${id}?w=1800&q=70&auto=format&fit=crop`;
+export const BG_PHOTOS = [
+  { id: 'meeting', label: 'פגישת ייעוץ', src: U('photo-1616587224026-668840f26916') },
+  { id: 'talk', label: 'שיחת עבודה', src: U('photo-1517245386807-bb43f82c33c4') },
+  { id: 'data', label: 'נתונים', src: U('photo-1460925895917-afdab827c52f') },
+  { id: 'workshop', label: 'סדנה', src: U('photo-1542744173-8e7e53415bb0') },
+];
+export const bgSrc = (bg) => (!bg ? null : BG_PHOTOS.find((b) => b.id === bg)?.src || bg);
 
 // From "שם ולוגו": the logo and the colors taken from it.
 export const BRAND = {
@@ -65,10 +102,13 @@ export const PRODUCTS = [
 export const SOURCES = [
   { id: 'logo', label: 'לוגו וצבעי המותג', from: 'שם ולוגו', step: 6, icon: 'palette' },
   { id: 'name', label: 'שם העסק והסלוגן', from: 'שם ולוגו', step: 6, icon: 'type', value: `${USER.business} · ${USER.slogan}` },
-  { id: 'message', label: 'המסר המרכזי', from: 'דף המסרים', step: 7, icon: 'message-square-quote', value: 'בעלי עסקים קטנים שורפים תקציב על פרסום בלי אסטרטגיה. אנחנו בונים מערך שיווק שמביא פניות, בתוך 90 יום.' },
-  { id: 'about', label: '"נעים להכיר"', from: 'דף המסרים', step: 7, icon: 'user-round', value: '12 שנים ניהלתי שיווק בחברת צריכה גדולה. היום אני מביא את אותה שיטה לעסקים קטנים.' },
+  { id: 'message', label: 'המסר המרכזי', from: 'דף המסרים', step: 7, icon: 'message-square-quote', value: `${MESSAGES.problem} ${MESSAGES.promise}` },
+  { id: 'pains', label: 'מה כואב ללקוחות', from: 'דף המסרים', step: 7, icon: 'circle-help', value: MESSAGES.pains.join(' · ') },
+  { id: 'about', label: '"נעים להכיר"', from: 'דף המסרים', step: 7, icon: 'user-round', value: MESSAGES.about },
+  { id: 'tone', label: 'הטון שלך', from: 'דף המסרים', step: 7, icon: 'mic', value: MESSAGES.tone },
   { id: 'services', label: 'השירותים והמחירים', from: 'סל מוצרים', step: 3, icon: 'package', value: '4 מוצרים, מ-890 ₪ עד 7,500 ₪' },
   { id: 'offer', label: 'ההצעה, הבונוס והאחריות', from: 'בניית הצעה מנצחת', step: 8, icon: 'gift', value: 'ליווי 90 יום · בונוס סדנה אישית · החזר מלא אחרי המפגש הראשון' },
+  { id: 'faq', label: 'התנגדויות ותשובות', from: 'בניית הצעה מנצחת', step: 8, icon: 'messages-square', value: OBJECTIONS.map((o) => o.q).join(' · ') },
 ];
 
 // ---------- Templates ----------
@@ -93,17 +133,19 @@ export const FONT_PAIRS = [
 ];
 
 // ---------- Sections ----------
+// `from`: where the section's words come from (shown in the "אזורים" tab).
 export const SECTION_TYPES = {
-  hero: { label: 'פתיחה', icon: 'panel-top', fixed: true },
-  pain: { label: 'מכירים את זה?', icon: 'circle-help' },
-  method: { label: 'השיטה', icon: 'route' },
-  services: { label: 'השירותים', icon: 'package' },
-  offer: { label: 'ההצעה', icon: 'gift' },
-  process: { label: 'איך זה עובד', icon: 'list-ordered' },
-  about: { label: 'נעים להכיר', icon: 'user-round' },
-  testimonials: { label: 'המלצות', icon: 'quote' },
-  faq: { label: 'שאלות נפוצות', icon: 'messages-square' },
-  contact: { label: 'יצירת קשר', icon: 'send', fixed: true },
+  hero: { label: 'פתיחה', icon: 'panel-top', fixed: true, from: 'שם ולוגו · דף המסרים' },
+  pain: { label: 'מכירים את זה?', icon: 'circle-help', from: 'דף המסרים' },
+  band: { label: 'המסר המרכזי', icon: 'megaphone', from: 'דף המסרים · עם תמונת רקע' },
+  method: { label: 'השיטה', icon: 'route', from: 'המוצר המרכזי בסל' },
+  services: { label: 'השירותים', icon: 'package', from: 'סל מוצרים' },
+  offer: { label: 'ההצעה', icon: 'gift', from: 'בניית הצעה מנצחת' },
+  process: { label: 'איך זה עובד', icon: 'list-ordered', from: 'סל מוצרים' },
+  about: { label: 'נעים להכיר', icon: 'user-round', from: 'דף המסרים' },
+  testimonials: { label: 'המלצות', icon: 'quote', from: 'רק המלצות אמיתיות' },
+  faq: { label: 'שאלות נפוצות', icon: 'messages-square', from: 'בניית הצעה מנצחת' },
+  contact: { label: 'יצירת קשר', icon: 'send', fixed: true, from: 'ההגדרות שלך' },
 };
 
 // ---------- Page content ----------
@@ -116,29 +158,17 @@ const SERVICES = [
   { id: 'r1', name: 'ריטיינר ליווי חודשי', desc: 'שני מפגשים בחודש, בקרה על הקמפיינים וזמינות שוטפת.', price: '2,200 ₪ לחודש' },
 ];
 
+// Only facts the user gave: no invented numbers (clients, results).
 const COMMON = {
-  pain: {
-    title: 'מכירים את זה?',
-    items: [
-      'משלמים על פרסום כל חודש, ואין מושג מה זה מביא.',
-      'מעלים פוסטים כשיש זמן, והטלפון לא מצלצל.',
-      'כל יועץ אומר משהו אחר, ואין תוכנית אחת ברורה.',
-    ],
-  },
+  pain: { title: 'מכירים את זה?', items: MESSAGES.pains },
+  band: { kicker: MESSAGES.problem, text: MESSAGES.promise },
   about: {
-    title: 'נעים להכיר, דניאל',
-    text: '12 שנים ניהלתי שיווק בחברת צריכה גדולה. ראיתי מקרוב מה עובד כשיש תקציב גדול, והבנתי שאותם עקרונות עובדים גם לעסק של אדם אחד. היום אני מלווה עסקי שירות קטנים, ובונה איתם שיווק שמביא פניות.',
-    creds: ['12 שנות ניהול שיווק', 'יותר מ-40 עסקים בשיטה', 'ליווי בזום ופרונטלי'],
+    title: `נעים להכיר, ${USER.firstName}`,
+    text: MESSAGES.about,
+    creds: ['12 שנות ניהול שיווק', 'אסטרטגיה כתובה לכל עסק', 'ליווי בזום ופרונטלי'],
   },
   testimonials: { title: 'מה אומרים הלקוחות', items: [] },
-  faq: {
-    title: 'שאלות נפוצות',
-    items: [
-      { q: 'למי זה מתאים?', a: 'לעסקי שירות מקומיים עם 1 עד 5 עובדים, שכבר יש להם לקוחות ורוצים פניות באופן קבוע.' },
-      { q: 'כמה זמן אצטרך להשקיע?', a: 'מפגש של שעה בשבוע, ועוד כשעתיים של עבודה בין המפגשים.' },
-      { q: 'צריך תקציב פרסום?', a: 'לא בהתחלה. בונים קודם את הבסיס, ורק אחר כך מחליטים יחד אם ובכמה לפרסם.' },
-    ],
-  },
+  faq: { title: 'שאלות נפוצות', items: OBJECTIONS },
   contact: { title: 'בואו נדבר', sub: 'משאירים פרטים, ואני חוזר אליכם תוך יום עבודה.', cta: 'שליחה', wa: 'או בוואטסאפ' },
 };
 
@@ -150,10 +180,11 @@ export function businessContent() {
       sub: 'ליווי אישי לעסקי שירות קטנים: אסטרטגיה כתובה, קמפיינים שעובדים ובקרה כל שבועיים.',
       cta: 'לשיחת היכרות',
     },
-    pain: { ...COMMON.pain },
+    pain: { ...COMMON.pain, items: [...COMMON.pain.items] },
+    band: { ...COMMON.band, cta: 'לשיחת היכרות' },
     method: {
       title: 'שיטת 90 הימים',
-      sub: 'תהליך אחד ברור, שנבדק על יותר מ-40 עסקים.',
+      sub: 'תהליך אחד ברור, עם אסטרטגיה כתובה ובקרה כל שבועיים.',
       steps: [
         { t: 'מיפוי', d: 'מוצאים איפה הכסף בורח ומי הלקוח שבאמת משלם.' },
         { t: 'בנייה', d: 'כותבים אסטרטגיה, מקימים קמפיינים ותוכן.' },
@@ -174,6 +205,7 @@ export function offerContent(productId) {
   return {
     hero: { eyebrow: core ? 'התוכנית המרכזית' : p.name, title: p.title, sub: p.desc, cta: p.cta },
     pain: { ...COMMON.pain, items: [...COMMON.pain.items] },
+    band: { ...COMMON.band, cta: p.cta },
     offer: {
       title: core ? 'מה כלול בתוכנית' : 'מה מקבלים',
       includes: [...p.includes],
@@ -194,8 +226,10 @@ export function offerContent(productId) {
   };
 }
 
-export const BUSINESS_SECTIONS = ['hero', 'pain', 'method', 'services', 'about', 'testimonials', 'faq', 'contact'];
-export const OFFER_SECTIONS = ['hero', 'pain', 'offer', 'process', 'about', 'testimonials', 'faq', 'contact'];
+export const BUSINESS_SECTIONS = ['hero', 'pain', 'band', 'method', 'services', 'about', 'testimonials', 'faq', 'contact'];
+export const OFFER_SECTIONS = ['hero', 'pain', 'band', 'offer', 'process', 'about', 'testimonials', 'faq', 'contact'];
+// The background photo each page starts with.
+export const DEFAULT_BG = { business: 'meeting', p1: 'talk', p2: 'data', b1: 'workshop', r1: 'data' };
 
 // Other wordings the shark offers for a section ("נוסח אחר"). In production: one model
 // call per request, with the same data and rules.
@@ -209,6 +243,9 @@ export const ALTERNATIVES = {
   ],
   about: [
     { title: 'מי אני', text: 'אני דניאל. אחרי 12 שנים כמנהל שיווק בחברה גדולה, בניתי שיטה פשוטה לעסקים קטנים: מבינים מי הלקוח, בונים מסר אחד חד, ובודקים כל שבועיים מה עובד.' },
+  ],
+  band: [
+    { kicker: 'פרסום בלי תוכנית הוא כסף שהולך לאיבוד.', text: 'ב-90 יום בונים יחד שיווק שמביא פניות.' },
   ],
 };
 

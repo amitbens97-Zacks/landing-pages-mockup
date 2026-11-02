@@ -20,11 +20,11 @@ export function Opening({ page }) {
         <p class="flex items-center gap-2"><${Icon} name="file-check-2" size=${17} class="text-brand-600" /><b>התוצר:</b> דף העסק באוויר, עם קישור קצר</p>
       </div>
     </div>
-    <div class="relative">
+    <div class="relative pb-10">
       <div class="rotate-[-1.2deg]">
         <${BrowserFrame} url=${pageUrl('')}><${Thumb} page=${page} width=${1180} height=${760} /><//>
       </div>
-      <span class="hand absolute -bottom-6 left-6 rotate-[-4deg] text-[26px]">הדף שלך, בצבעים שלך</span>
+      <span class="hand absolute bottom-0 left-6 rotate-[-4deg] text-[26px]">הדף שלך, בצבעים שלך</span>
     </div>
   </div>`;
 }
@@ -136,7 +136,7 @@ export function FullPreview({ page, name, onClose, onPick }) {
 const STAGES = [
   ['כריש המילים כותב כותרת קצרה', 'pen-line'],
   ['בונים את האזורים מהמסרים ומהסל', 'layout-list'],
-  ['כריש העיצוב מתאים את הצבעים מהלוגו', 'palette'],
+  ['כריש העיצוב מתאים צבעים מהלוגו ותמונות רקע לתחום', 'palette'],
   ['מכינים את הגרסה למובייל', 'smartphone'],
   ['בודקים את המסר', 'badge-check'],
 ];

@@ -17,7 +17,7 @@ import { initialPages, makePage, checksOf } from './state.js';
 import { STEP, PARTS, PRODUCTS, pageUrl } from './data.js';
 import { EMBED, IS_PHONE, readView, saveView, writeHandoff, takeHandoff, applyPhoneViewport, ViewToggle, PhonePreview } from './viewswitch.js';
 
-const STORE = 'flowbiz-lp-pages-v1';
+const STORE = 'flowbiz-lp-pages-v2';
 const params = new URLSearchParams(location.search);
 const STEP_SCREENS = ['opening', 'data', 'template', 'wait', 'editor', 'done'];
 const PART_OF = { opening: 0, data: 0, template: 1, wait: 1, editor: 2, done: 3 };

@@ -1,5 +1,5 @@
 // Pages, their defaults, and the message check ("בדיקת מסר").
-import { BRAND, USER, PRODUCTS, businessContent, offerContent, BUSINESS_SECTIONS, OFFER_SECTIONS, RECOMMENDED_TEMPLATE, PAGE_STATS } from './data.js';
+import { BRAND, USER, PRODUCTS, businessContent, offerContent, BUSINESS_SECTIONS, OFFER_SECTIONS, RECOMMENDED_TEMPLATE, PAGE_STATS, DEFAULT_BG } from './data.js';
 import { getPath } from './page.js';
 
 let seq = 0;
@@ -19,6 +19,7 @@ export function makePage(kind, productId, template = RECOMMENDED_TEMPLATE) {
     sections: secs(business ? BUSINESS_SECTIONS : OFFER_SECTIONS),
     content: business ? businessContent() : offerContent(productId),
     photo: USER.photo,
+    bg: DEFAULT_BG[business ? 'business' : productId] || 'meeting',
     status: 'draft',
     seo: business
       ? { title: `${USER.business} · ${USER.fullName}`, desc: 'ליווי שיווק אישי לעסקי שירות קטנים. אסטרטגיה, קמפיינים ובקרה, בשיטת 90 הימים.' }

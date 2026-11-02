@@ -2,8 +2,10 @@
 // the hero, the section styles, the corners and the buttons; the colors always come
 // from the user's logo (page.theme). With `editable` every text is edited in place,
 // a click selects a section, and a click on a photo opens the photo window.
+// Background photos are shown in grey and tinted with the logo's main color, so any
+// photo fits the brand and white text always reads on it.
 import { html, useState, useEffect, useRef, Icon, cx } from './lib.js';
-import { templateOf, FONT_PAIRS, SECTION_TYPES, USER, PRODUCTS, ALTERNATIVES, pageUrl } from './data.js';
+import { templateOf, FONT_PAIRS, SECTION_TYPES, USER, PRODUCTS, ALTERNATIVES, pageUrl, bgSrc } from './data.js';
 
 // ---------- colors ----------
 const rgb = (h) => [1, 3, 5].map((i) => parseInt(h.slice(i, i + 2), 16));
@@ -108,7 +110,8 @@ function Btn({ x, th, path, sec, ghost, small, onClick }) {
     ? { border: `1.5px solid ${th.dark ? 'rgba(255,255,255,.5)' : th.P}`, color: th.dark ? '#fff' : th.P, background: 'transparent', borderRadius: th.btnR }
     : { background: th.btnBg, color: th.btnFg, borderRadius: th.btnR, boxShadow: th.t.id === 'bold' ? `4px 4px 0 ${th.A}` : '0 6px 16px -8px rgba(0,0,0,.35)' };
   return html`<span
-    class=${cx('inline-flex items-center justify-center gap-2 font-bold', small ? 'h-10 px-4 text-[14px]' : 'h-[52px] px-6 text-[17px]')}
+    data-cta
+    class=${cx('inline-flex items-center justify-center gap-2 font-bold', !x.editable && 'cursor-pointer', small ? 'h-10 px-4 text-[14px]' : 'h-[52px] px-6 text-[17px]')}
     style=${{ ...style, fontFamily: th.body }}
     onClick=${onClick}
   >
@@ -152,23 +155,44 @@ const H2 = ({ x, th, path, sec, center, size }) =>
     style=${{ fontFamily: th.head, fontWeight: th.t.id === 'bold' ? 900 : 700, fontSize: `${size || (x.narrow ? 28 : th.t.id === 'bold' ? 44 : 38)}px`, color: th.ink, letterSpacing: th.t.id === 'bold' ? '-0.02em' : 0 }}
   />`;
 
+// The page's background photo: grey, the main color over it, and a darker side under the text.
+export function BgPhoto({ th, src, narrow, tile }) {
+  const deep = mix(th.P, '#000000', 0.5);
+  if (tile)
+    return html`<div class="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden="true">
+      <img src=${src} alt="" class="h-full w-full object-cover" style=${{ filter: 'grayscale(1) contrast(1.08) brightness(1.15)' }} draggable="false" />
+      <div class="absolute inset-0" style=${{ background: th.P, mixBlendMode: 'multiply' }}></div>
+    </div>`;
+  return html`<div class="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden="true">
+    <img src=${src} alt="" class="h-full w-full object-cover" style=${{ filter: 'grayscale(1) contrast(1.08)' }} draggable="false" />
+    <div class="absolute inset-0" style=${{ background: th.P, mixBlendMode: 'multiply' }}></div>
+    <div class="absolute inset-0" style=${{ background: narrow ? `linear-gradient(${deep}cc, ${deep}e6)` : `linear-gradient(to left, ${deep}f0 0%, ${deep}c4 50%, ${deep}5c 100%)` }}></div>
+  </div>`;
+}
+
+// Where the background photo shows: the message band always; the hero and the
+// contact section in the templates that have a full color there (bold, luxe).
+export const photoIn = (page, type) => !!bgSrc(page.bg) && (type === 'band' || ((type === 'hero' || type === 'contact') && ['block', 'dark'].includes(templateOf(page.template).hero)));
+
 // ---------- section frame (selection and tools in the editor) ----------
 
 function Sec({ x, th, id, type, bg, pad = true, children }) {
   const sel = x.editable && x.selected === id;
   const hidden = x.page.sections.find((s) => s.id === id)?.hidden;
+  const photo = photoIn(x.page, type) ? bgSrc(x.page.bg) : null;
   return html`<section
     data-sec=${id}
     class=${cx('lp-sec relative', x.editable && 'lp-sec-ed', sel && 'is-sel', hidden && 'is-hidden')}
-    style=${{ background: bg ?? th.bg, color: th.ink }}
+    style=${{ background: bg ?? th.bg, color: photo ? '#fff' : th.ink }}
     onClick=${() => x.editable && x.onSelect(id)}
   >
-    ${x.editable && html`<${SecTools} x=${x} id=${id} type=${type} sel=${sel} />`}
-    <div class="mx-auto" style=${{ maxWidth: '1080px', padding: pad ? (x.narrow ? '44px 20px' : '84px 48px') : 0 }}>${children}</div>
+    ${photo && html`<${BgPhoto} th=${th} src=${photo} narrow=${x.narrow} />`}
+    ${x.editable && html`<${SecTools} x=${x} id=${id} type=${type} sel=${sel} photo=${!!photo || type === 'band'} />`}
+    <div class="relative mx-auto" style=${{ maxWidth: '1080px', padding: pad ? (x.narrow ? '44px 20px' : '84px 48px') : 0 }}>${children}</div>
   </section>`;
 }
 
-function SecTools({ x, id, type, sel }) {
+function SecTools({ x, id, type, sel, photo }) {
   const meta = SECTION_TYPES[type];
   const list = x.page.sections.filter((s) => !s.hidden || s.id === id);
   const i = x.page.sections.findIndex((s) => s.id === id);
@@ -186,17 +210,23 @@ function SecTools({ x, id, type, sel }) {
       ${tool('arrow-down', 'למטה', () => x.onMove(id, 1), !meta.fixed && i < x.page.sections.length - 2)}
       ${tool('sparkles', 'נוסח אחר', () => x.onRewrite(id, type), !!ALTERNATIVES[type])}
       ${tool('calendar-check', x.page.content.offer?.seats?.on ? 'בלי מקומות פנויים' : 'מקומות פנויים', () => x.onSeats(), type === 'offer')}
+      ${tool('image', 'תמונת רקע', () => x.onBg?.(), photo)}
       ${tool('eye-off', 'הסתרה', () => x.onHide(id), !meta.fixed)}`}
   </div>`;
 }
 
 // ---------- the page ----------
 
-export function PageView({ page, editable = false, narrow = false, mid = false, selected, onSelect = () => {}, onEdit = () => {}, onMove, onHide, onRewrite, onPhoto, onAddTestimonial, onSeats, sticky = true, pages = [] }) {
+export function PageView({ page, editable = false, narrow = false, mid = false, selected, onSelect = () => {}, onEdit = () => {}, onMove, onHide, onRewrite, onPhoto, onBg, onAddTestimonial, onSeats, sticky = true, pages = [] }) {
   const th = themeOf(page);
-  const x = { page, editable, narrow, mid, selected, onSelect, onEdit, onMove, onHide, onRewrite, onPhoto, onAddTestimonial, onSeats, pages };
+  const x = { page, editable, narrow, mid, selected, onSelect, onEdit, onMove, onHide, onRewrite, onPhoto, onBg, onAddTestimonial, onSeats, pages };
   const shown = page.sections.filter((s) => editable || !s.hidden);
-  return html`<div class="lp-page relative" dir="rtl" style=${{ background: th.bg, color: th.ink, fontFamily: th.body, fontSize: narrow ? '16px' : '18px', lineHeight: 1.6 }}>
+  // On the live page every call to action leads to the contact form.
+  const toContact = (e) => {
+    if (editable || !e.target.closest('[data-cta]') || e.target.closest('form')) return;
+    e.currentTarget.querySelector('[data-sec^="contact"]')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  };
+  return html`<div class="lp-page relative" dir="rtl" onClick=${toContact} style=${{ background: th.bg, color: th.ink, fontFamily: th.body, fontSize: narrow ? '16px' : '18px', lineHeight: 1.6 }}>
     <${PageHeader} x=${x} th=${th} />
     ${shown.map((s) => {
       const C = SECTIONS[s.type];
@@ -220,7 +250,7 @@ function PageHeader({ x, th }) {
       </span>
       ${!x.narrow && html`<span class="flex items-center gap-6 text-[15px] font-semibold" style=${{ opacity: 0.85 }}>
         <span>${USER.phone}</span>
-        <span class="inline-flex h-10 items-center rounded-full px-4 font-bold" style=${{ border: `1.5px solid ${solid ? th.onP : th.dark ? 'rgba(255,255,255,.4)' : th.line}` }}>יצירת קשר</span>
+        <span data-cta class=${cx('inline-flex h-10 items-center rounded-full px-4 font-bold', !x.editable && 'cursor-pointer')} style=${{ border: `1.5px solid ${solid ? th.onP : th.dark ? 'rgba(255,255,255,.4)' : th.line}` }}>יצירת קשר</span>
       </span>`}
     </div>
   </header>`;
@@ -228,8 +258,11 @@ function PageHeader({ x, th }) {
 
 // ---------- hero, one per template ----------
 
-function Hero({ x, th, id }) {
+function Hero({ x, th: theme, id }) {
+  let th = theme;
   const n = x.narrow;
+  // The facts from "נעים להכיר", repeated under the button (they change there).
+  const creds = x.page.content.about?.creds || [];
   const text = (center, light) => html`<div class=${cx('min-w-0', center && 'text-center')}>
     <${T} x=${x} sec=${id} path="hero.eyebrow" tag="p" class="mb-3 font-bold" style=${{ color: light ? th.onP : th.dark ? th.A : th.P, fontSize: n ? '14px' : '16px', letterSpacing: '0.02em', opacity: light ? 0.85 : 1 }} />
     <${T}
@@ -252,9 +285,14 @@ function Hero({ x, th, id }) {
       <${Btn} x=${x} th=${light ? { ...th, btnBg: th.A, btnFg: onColor(th.A) } : th} path="hero.cta" sec=${id} />
       <span class="inline-flex items-center gap-1.5 text-[15px] font-semibold" style=${{ color: light ? th.onP : th.muted }}><${Icon} name="message-circle" size=${17} />${USER.phone}</span>
     </div>
+    ${creds.length > 0 &&
+    html`<ul class=${cx('mt-7 flex flex-wrap gap-x-5 gap-y-1.5 text-[14px] font-semibold', center && 'justify-center')} style=${{ color: light ? th.onP : th.muted, opacity: light ? 0.9 : 1 }}>
+      ${creds.map((c, i) => html`<li key=${i} class="inline-flex items-center gap-1.5"><span class="inline-flex" style=${{ color: light || th.dark ? th.A : th.P }}><${Icon} name="check" size=${15} /></span>${c}</li>`)}
+    </ul>`}
   </div>`;
 
   const kind = th.t.hero;
+  if (kind === 'block' && photoIn(x.page, 'hero')) th = { ...th, onP: '#ffffff' };
   if (kind === 'split' || kind === 'dark')
     return html`<${Sec} x=${x} th=${th} id=${id} type="hero" bg=${th.bg}>
       <div class=${cx('grid items-center', n ? 'gap-8' : 'grid-cols-[1.15fr_0.85fr] gap-14')} style=${{ marginTop: n ? '-12px' : '-36px' }}>
@@ -276,7 +314,7 @@ function Hero({ x, th, id }) {
       </div>
     <//>`;
   if (kind === 'block')
-    return html`<${Sec} x=${x} th=${th} id=${id} type="hero" bg=${th.P}>
+    return html`<${Sec} x=${x} th=${photoIn(x.page, 'hero') ? { ...th, onP: '#ffffff' } : th} id=${id} type="hero" bg=${th.P}>
       <div class=${cx('grid items-center', n ? 'gap-8' : 'grid-cols-[1.3fr_0.7fr] gap-12')} style=${{ marginTop: n ? '-12px' : '-30px' }}>
         ${text(false, true)}
         <div class="relative" style=${{ transform: n ? 'none' : 'rotate(-2.5deg)' }}>
@@ -290,7 +328,7 @@ function Hero({ x, th, id }) {
       <div class="mx-auto flex max-w-[780px] flex-col items-center text-center" style=${{ marginTop: n ? 0 : '-10px', paddingBottom: n ? 0 : '20px' }}>
         <div class="mb-6 flex items-center gap-3">
           <${Photo} x=${x} th=${th} sec=${id} round style=${{ width: '56px', height: '56px' }} />
-          <span class="text-start text-[15px] leading-tight"><b style=${{ color: th.ink }}>${USER.fullName}</b><br /><span style=${{ color: th.muted }}>יועץ שיווק לעסקים קטנים</span></span>
+          <span class="text-start text-[15px] leading-tight"><b style=${{ color: th.ink }}>${USER.fullName}</b><br /><span style=${{ color: th.muted }}>${USER.role}</span></span>
         </div>
         ${text(true)}
         <div class="mt-10 h-px w-full" style=${{ background: th.line }}></div>
@@ -326,6 +364,28 @@ function Pain({ x, th, id }) {
           <${T} x=${x} sec=${id} path=${`pain.items.${i}`} tag="p" multiline class="font-semibold" style=${{ fontSize: x.narrow ? '17px' : '19px' }} />
         </div>`,
       )}
+    </div>
+  <//>`;
+}
+
+// The main message from "דף המסרים", over the background photo.
+function Band({ x, th, id }) {
+  const b = x.page.content.band;
+  const photo = photoIn(x.page, 'band');
+  const light = { ...th, btnBg: th.A, btnFg: onColor(th.A) };
+  return html`<${Sec} x=${x} th=${th} id=${id} type="band" bg=${mix(th.P, '#000000', 0.35)}>
+    <div class=${cx('max-w-[720px]', x.narrow ? 'py-4' : 'py-6')} style=${{ color: '#fff' }}>
+      <${T} x=${x} sec=${id} path="band.kicker" tag="p" multiline class="mb-3 font-bold" style=${{ color: photo ? th.A : mix(th.A, '#ffffff', 0.2), fontSize: x.narrow ? '17px' : '20px' }} />
+      <${T}
+        x=${x}
+        sec=${id}
+        path="band.text"
+        tag="p"
+        multiline
+        class="mb-8"
+        style=${{ fontFamily: th.head, fontWeight: th.t.id === 'bold' ? 900 : 800, fontSize: `${x.narrow ? 30 : 46}px`, lineHeight: 1.15, letterSpacing: '-0.01em' }}
+      />
+      <${Btn} x=${x} th=${light} path="band.cta" sec=${id} />
     </div>
   <//>`;
 }
@@ -493,9 +553,10 @@ function Contact({ x, th, id }) {
   const field = `h-12 w-full px-3.5 text-[16px] outline-none`;
   const fs = { background: th.dark ? 'rgba(255,255,255,.06)' : '#fff', border: `1.5px solid ${th.line}`, borderRadius: `${Math.min(th.radius, 12)}px`, color: th.ink, fontFamily: th.body };
   const solid = th.t.hero === 'block' || th.t.id === 'luxe';
+  const photo = photoIn(x.page, 'contact');
   return html`<${Sec} x=${x} th=${th} id=${id} type="contact" bg=${solid ? (th.dark ? th.alt : th.P) : th.tint}>
     <div class=${cx('grid gap-8', !x.narrow && 'grid-cols-2 items-center')}>
-      <div style=${{ color: solid && !th.dark ? th.onP : th.ink }}>
+      <div style=${{ color: photo ? '#fff' : solid && !th.dark ? th.onP : th.ink }}>
         <${T}
           x=${x}
           sec=${id}
@@ -547,12 +608,12 @@ function Footer({ x, th }) {
 // On a phone the call to action stays at the bottom of the screen.
 function StickyBar({ th, page }) {
   return html`<div class="sticky bottom-0 z-10 flex gap-2 p-3" style=${{ background: th.dark ? th.bg : '#ffffffee', backdropFilter: 'blur(6px)', borderTop: `1px solid ${th.line}` }}>
-    <span class="flex h-12 flex-1 items-center justify-center gap-2 font-bold" style=${{ background: th.btnBg, color: th.btnFg, borderRadius: th.btnR }}>${page.content.hero.cta}</span>
+    <span data-cta class="flex h-12 flex-1 cursor-pointer items-center justify-center gap-2 font-bold" style=${{ background: th.btnBg, color: th.btnFg, borderRadius: th.btnR }}>${page.content.hero.cta}</span>
     <span class="grid h-12 w-12 place-items-center rounded-full text-white" style=${{ background: '#1f9d55' }} aria-label="וואטסאפ"><${Icon} name="message-circle" size=${22} /></span>
   </div>`;
 }
 
-const SECTIONS = { hero: Hero, pain: Pain, method: Method, services: Services, offer: Offer, process: Process, about: About, testimonials: Testimonials, faq: Faq, contact: Contact };
+const SECTIONS = { hero: Hero, pain: Pain, band: Band, method: Method, services: Services, offer: Offer, process: Process, about: About, testimonials: Testimonials, faq: Faq, contact: Contact };
 
 // ---------- a live, scaled-down copy of a page (template cards, "הדפים שלי") ----------
 
