@@ -115,16 +115,17 @@ export const SOURCES = [
 // Six designed templates. Each one is a full design (fonts, hero, section styles,
 // corners, buttons). The colors always come from the user's logo.
 export const TEMPLATES = [
-  { id: 'studio', name: 'סטודיו', desc: 'נקי ומקצועי, התמונה לצד הכותרת', fit: 'יועצים ונותני שירות', head: 'Rubik', body: 'Assistant', hero: 'split', radius: 18, btn: 'round', bg: 'white' },
-  { id: 'personal', name: 'אישי', desc: 'חם ואישי, התמונה שלך במרכז', fit: 'מטפלים, מאמנים ומלווים', head: 'Frank Ruhl Libre', body: 'Assistant', hero: 'portrait', radius: 26, btn: 'pill', bg: 'cream' },
-  { id: 'luxe', name: 'יוקרה', desc: 'רקע כהה ואותיות עם סריף', fit: 'שירותי פרימיום', head: 'Frank Ruhl Libre', body: 'Assistant', hero: 'dark', radius: 4, btn: 'square', bg: 'dark' },
-  { id: 'bold', name: 'נועז', desc: 'צבע מלא ואותיות גדולות', fit: 'סדנאות, אירועים והשקות', head: 'Heebo', body: 'Heebo', hero: 'block', radius: 0, btn: 'square', bg: 'white' },
-  { id: 'minimal', name: 'מינימלי', desc: 'הרבה אוויר וקווים דקים', fit: 'אנשי מקצוע ומשרדים', head: 'Assistant', body: 'Assistant', hero: 'center', radius: 8, btn: 'round', bg: 'white' },
-  { id: 'soft', name: 'רך', desc: 'גוונים בהירים ופינות עגולות', fit: 'עסקים לקהל פרטי', head: 'Rubik', body: 'Assistant', hero: 'cards', radius: 28, btn: 'pill', bg: 'tint' },
+  { id: 'studio', name: 'סטודיו', desc: 'נקי ומקצועי, התמונה לצד הכותרת', fit: 'יועצים ונותני שירות', head: 'Rubik', body: 'Assistant', fontName: 'מודרני', hero: 'split', radius: 18, btn: 'round', bg: 'white' },
+  { id: 'personal', name: 'אישי', desc: 'חם ואישי, התמונה שלך במרכז', fit: 'מטפלים, מאמנים ומלווים', head: 'Rubik', body: 'Assistant', fontName: 'מודרני', hero: 'portrait', radius: 26, btn: 'pill', bg: 'cream' },
+  { id: 'luxe', name: 'יוקרה', desc: 'רקע כהה ואותיות דקות', fit: 'שירותי פרימיום', head: 'Heebo', body: 'Assistant', fontName: 'דק', weight: 500, hero: 'dark', radius: 4, btn: 'square', bg: 'dark' },
+  { id: 'bold', name: 'נועז', desc: 'צבע מלא ואותיות גדולות', fit: 'סדנאות, אירועים והשקות', head: 'Heebo', body: 'Heebo', fontName: 'חזק', hero: 'block', radius: 0, btn: 'square', bg: 'white' },
+  { id: 'minimal', name: 'מינימלי', desc: 'הרבה אוויר וקווים דקים', fit: 'אנשי מקצוע ומשרדים', head: 'Assistant', body: 'Assistant', fontName: 'נקי', hero: 'center', radius: 8, btn: 'round', bg: 'white' },
+  { id: 'soft', name: 'רך', desc: 'גוונים בהירים ופינות עגולות', fit: 'עסקים לקהל פרטי', head: 'Rubik', body: 'Assistant', fontName: 'מודרני', hero: 'cards', radius: 28, btn: 'pill', bg: 'tint' },
 ];
 export const RECOMMENDED_TEMPLATE = 'studio';
 export const templateOf = (id) => TEMPLATES.find((t) => t.id === id) || TEMPLATES[0];
 
+// No template uses the serif (Frank Ruhl Libre) by default; it is only a choice in "עיצוב".
 export const FONT_PAIRS = [
   { id: 'template', label: 'לפי הטמפלייט' },
   { id: 'modern', label: 'מודרני', head: 'Rubik', body: 'Assistant' },

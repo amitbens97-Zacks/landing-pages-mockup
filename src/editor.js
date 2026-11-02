@@ -264,7 +264,7 @@ function DesignPanel({ page, set, onPhoto }) {
     </p>
 
     <p class="mb-1.5 text-[14px] font-bold">גופן</p>
-    <div class="mb-5"><${Chips} small options=${FONT_PAIRS.map((f) => ({ id: f.id, label: f.id === 'template' ? `לפי הטמפלייט (${t.head === 'Frank Ruhl Libre' ? 'קלאסי' : t.head === 'Heebo' ? 'חזק' : 'מודרני'})` : f.label }))} value=${page.theme.font} onChange=${(v) => set({ theme: { ...page.theme, font: v } }, 'הגופן עודכן')} /></div>
+    <div class="mb-5"><${Chips} small options=${FONT_PAIRS.map((f) => ({ id: f.id, label: f.id === 'template' ? `לפי הטמפלייט (${t.fontName})` : f.label }))} value=${page.theme.font} onChange=${(v) => set({ theme: { ...page.theme, font: v } }, 'הגופן עודכן')} /></div>
 
     <p class="mb-1.5 text-[14px] font-bold">כפתורים</p>
     <div class="mb-5"><${Chips} small options=${[{ id: 'round', label: 'פינות עגולות' }, { id: 'pill', label: 'עגול מלא' }, { id: 'square', label: 'מרובע' }]} value=${page.theme.btn || t.btn} onChange=${(v) => set({ theme: { ...page.theme, btn: v } }, 'הכפתורים עודכנו')} /></div>

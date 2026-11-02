@@ -152,7 +152,7 @@ const H2 = ({ x, th, path, sec, center, size }) =>
     sec=${sec}
     tag="h2"
     class=${cx('mb-3 leading-[1.15]', center && 'text-center')}
-    style=${{ fontFamily: th.head, fontWeight: th.t.id === 'bold' ? 900 : 700, fontSize: `${size || (x.narrow ? 28 : th.t.id === 'bold' ? 44 : 38)}px`, color: th.ink, letterSpacing: th.t.id === 'bold' ? '-0.02em' : 0 }}
+    style=${{ fontFamily: th.head, fontWeight: th.t.weight || (th.t.id === 'bold' ? 900 : 700), fontSize: `${size || (x.narrow ? 28 : th.t.id === 'bold' ? 44 : 38)}px`, color: th.ink, letterSpacing: th.t.id === 'bold' ? '-0.02em' : 0 }}
   />`;
 
 // The page's background photo: grey, the main color over it, and a darker side under the text.
@@ -273,7 +273,7 @@ function Hero({ x, th: theme, id }) {
       class="mb-4"
       style=${{
         fontFamily: th.head,
-        fontWeight: th.t.id === 'bold' ? 900 : th.t.head === 'Frank Ruhl Libre' ? 700 : 800,
+        fontWeight: th.t.weight || (th.t.id === 'bold' ? 900 : 800),
         fontSize: `${n ? (th.t.id === 'bold' ? 40 : 34) : x.mid ? (th.t.id === 'bold' ? 52 : 44) : th.t.id === 'bold' ? 68 : th.t.id === 'minimal' ? 54 : 56}px`,
         lineHeight: 1.08,
         letterSpacing: th.t.id === 'bold' ? '-0.03em' : '-0.01em',
