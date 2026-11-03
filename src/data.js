@@ -25,7 +25,7 @@ export const PARTS = ['מה נכנס לדף', 'עיצוב', 'עריכה', 'פר�
 const PHOTO = (id) => `https://images.unsplash.com/${id}?w=900&h=1080&fit=crop&crop=faces&q=80`;
 const PROFILES = {
   m: { gender: 'm', firstName: 'דניאל', fullName: 'דניאל כהן', slug: 'danielcohen', email: 'daniel@example.co.il', role: 'יועץ שיווק לעסקי שירות קטנים', photo: PHOTO('photo-1771898343647-bd979ad8cca5') },
-  f: { gender: 'f', firstName: 'דנה', fullName: 'דנה כהן', slug: 'danacohen', email: 'dana@example.co.il', role: 'יועצת שיווק לעסקי שירות קטנים', photo: PHOTO('photo-1573497019940-1c28c88b4f3e') },
+  f: { gender: 'f', firstName: 'דניאלה', fullName: 'דניאלה כהן', slug: 'danielacohen', email: 'daniela@example.co.il', role: 'יועצת שיווק לעסקי שירות קטנים', photo: PHOTO('photo-1494790108377-be9c29b29330') },
 };
 const GENDER_KEY = 'flowbiz-lp-gender';
 function pickGender() {

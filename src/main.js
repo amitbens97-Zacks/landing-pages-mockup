@@ -18,7 +18,7 @@ import { STEP, PARTS, PRODUCTS, pageUrl, GENDER } from './data.js';
 import { EMBED, IS_PHONE, readView, saveView, writeHandoff, takeHandoff, applyPhoneViewport, ViewToggle, PhonePreview } from './viewswitch.js';
 
 // One saved state per demo user (the texts and the photo follow the user's gender).
-const STORE = `flowbiz-lp-pages-v2-${GENDER}`;
+const STORE = `flowbiz-lp-pages-v3-${GENDER}`;
 const params = new URLSearchParams(location.search);
 const STEP_SCREENS = ['opening', 'data', 'template', 'wait', 'editor', 'done'];
 const PART_OF = { opening: 0, data: 0, template: 1, wait: 1, editor: 2, done: 3 };
