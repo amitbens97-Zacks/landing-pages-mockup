@@ -25,7 +25,7 @@ export const PARTS = ['מה נכנס לדף', 'עיצוב', 'עריכה', 'פר�
 // (therapists, consultants, coaches): warm, natural light, looking at the camera. Unsplash, free license.
 const PHOTO = (id) => `https://images.unsplash.com/${id}?w=900&h=1080&fit=crop&crop=faces&q=80`;
 const PROFILES = {
-  m: { gender: 'm', firstName: 'דניאל', fullName: 'דניאל כהן', slug: 'danielcohen', email: 'daniel@example.co.il', role: 'יועץ שיווק לעסקי שירות קטנים', photo: PHOTO('photo-1633367583895-08545d733dfe') },
+  m: { gender: 'm', firstName: 'דניאל', fullName: 'דניאל כהן', slug: 'danielcohen', email: 'daniel@example.co.il', role: 'יועץ שיווק לעסקי שירות קטנים', photo: PHOTO('photo-1705645930353-0e335311ef20') },
   f: { gender: 'f', firstName: 'דניאלה', fullName: 'דניאלה כהן', slug: 'danielacohen', email: 'daniela@example.co.il', role: 'יועצת שיווק לעסקי שירות קטנים', photo: PHOTO('photo-1792488954237-3fad5b5a8a4e') },
 };
 const GENDER_KEY = 'flowbiz-lp-gender';
