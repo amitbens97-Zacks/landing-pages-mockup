@@ -5,7 +5,7 @@ import { Button, Mark, Note, SharkAvatar, StepHeading } from './components.js';
 import { Sheet, Field, inputCls, DeviceSwitch, BrowserFrame, Tag } from './ui.js';
 import { PageView, Thumb, LogoMark, UrlLine } from './page.js';
 import { SharePreview, PhotoSheet } from './editor.js';
-import { USER, BRAND, SOURCES, TEMPLATES, RECOMMENDED_TEMPLATE, PARTS, pageUrl, PARTNER } from './data.js';
+import { USER, BRAND, SOURCES, TEMPLATES, RECOMMENDED_TEMPLATE, PARTS, pageUrl, PARTNER, g } from './data.js';
 
 // ---------- opening (first entry only) ----------
 
@@ -78,6 +78,7 @@ export function DataScreen({ page, set }) {
           <${Field} label="וואטסאפ וטלפון"><input class=${inputCls} value=${USER.phone} dir="ltr" /><//>
           <${Field} label="מייל לפניות" class="!mb-1"><input class=${inputCls} value=${USER.email} dir="ltr" /><//>
           <p class="text-[12px] text-muted">מההגדרות שלך. כל פנייה מהדף נכנסת ללידים.</p>
+          <p class="mt-2 flex items-center gap-1.5 text-[13px] font-semibold text-ink"><${Icon} name="user-round" size=${15} class="text-brand-600" />הדף כתוב בגוף ראשון, ${g('בלשון זכר', 'בלשון נקבה')}, לפי ההגדרות שלך</p>
         </section>
       </div>
     </div>

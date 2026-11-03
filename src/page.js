@@ -5,7 +5,7 @@
 // Background photos are shown in grey and tinted with the logo's main color, so any
 // photo fits the brand and white text always reads on it.
 import { html, useState, useEffect, useRef, Icon, cx } from './lib.js';
-import { templateOf, FONT_PAIRS, SECTION_TYPES, USER, PRODUCTS, ALTERNATIVES, pageUrl, bgSrc } from './data.js';
+import { templateOf, FONT_PAIRS, SECTION_TYPES, USER, PRODUCTS, ALTERNATIVES, pageUrl, bgSrc, g } from './data.js';
 
 // ---------- colors ----------
 const rgb = (h) => [1, 3, 5].map((i) => parseInt(h.slice(i, i + 2), 16));
@@ -582,7 +582,7 @@ function Contact({ x, th, id }) {
           ? html`<div class="py-8 text-center">
               <span class="mx-auto mb-3 grid h-14 w-14 place-items-center rounded-full" style=${{ background: th.P, color: th.onP }}><${Icon} name="check" size=${28} /></span>
               <p class="text-[20px] font-bold">תודה! הפנייה נשלחה</p>
-              <p style=${{ color: th.muted }}>${USER.firstName} יחזור אליכם בקרוב.</p>
+              <p style=${{ color: th.muted }}>${USER.firstName} ${g('יחזור', 'תחזור')} אליכם בקרוב.</p>
             </div>`
           : html`<input class=${field} style=${fs} placeholder="שם מלא" aria-label="שם מלא" disabled=${x.editable} />
               <input class=${field} style=${fs} placeholder="טלפון" aria-label="טלפון" inputmode="tel" disabled=${x.editable} />

@@ -1,5 +1,6 @@
 // Developer notes for task 3, plus a jump list of every screen (Shift+D).
 import { html, Icon, cx } from './lib.js';
+import { GENDER, SUBDOMAIN, ROOT_DOMAIN, setDemoGender } from './data.js';
 
 export const JUMPS = [
   { id: 'opening', label: 'השלב: מסך פתיחה' },
@@ -50,6 +51,7 @@ const NOTES = [
       'אזור חדש "המסר המרכזי": הבעיה וההבטחה מדף המסרים, על תמונת הרקע, עם הקריאה לפעולה.',
       'בלי מספרים שהמשתמש לא נתן (לקוחות, תוצאות). מתחת לכפתור בפתיחה מופיעות העובדות מ"נעים להכיר".',
       'בדף שבאוויר כל כפתור קריאה לפעולה גולל לטופס יצירת הקשר.',
+      'לשון הפנייה: לפי מה שהמשתמש סימן בהגדרות (זכר או נקבה). המודל כותב את הטקסטים בגוף ראשון בהתאם ("אני חוזר" / "אני חוזרת", "יועץ" / "יועצת"), וכך גם הודעת התודה בטופס ("דנה תחזור אליכם"). במוקאפ: דניאל ודנה, מעבר בראש הפאנל הזה.',
       'אין דחיפות מזויפת ואין ערך מנופח. "נשארו X מקומות" רק כשהמשתמש מדליק ומספר אמיתי.',
       'המלצות: רק אמיתיות. אזור בלי המלצה לא מופיע בדף שבאוויר.',
       'בדיקת מסר רצה על כל שינוי ולא חוסמת פרסום.',
@@ -58,7 +60,7 @@ const NOTES = [
   {
     title: 'קישור ופניות',
     items: [
-      'סאב-דומיין לכל משתמש: danielcohen.flowbiz.co.il לדף הראשי, ‎/90-yom לדף הצעה. הקישור הישן (preview.flowbiz.co.il/l/<id>) מעביר לחדש.',
+      `סאב-דומיין לכל משתמש: ${SUBDOMAIN}.${ROOT_DOMAIN} לדף הראשי, ‎/90-yom לדף הצעה. הקישור הישן (preview.flowbiz.co.il/l/<id>) מעביר לחדש.`,
       'כל פנייה מהטופס נכנסת ללידים, עם שם הדף כמקור. כפתור וואטסאפ פותח wa.me למספר מההגדרות.',
       'תצוגה בשיתוף (כותרת, תיאור, תמונה) לוואטסאפ, פייסבוק וגוגל.',
       'נשאר כמו היום: חיבור דומיין משלך (רשומות DNS), פיקסל Meta ו-Google Analytics, שדות הטופס, אימייל לפניות.',
@@ -79,6 +81,24 @@ export function DevPanel({ open, onClose, onJump }) {
       <button type="button" onClick=${onClose} aria-label="סגירה" class="rounded-lg p-1.5 text-slate-500 hover:bg-slate-100 cursor-pointer"><${Icon} name="x" size=${18} /></button>
     </div>
     <div class="thin-scroll flex-1 overflow-y-auto p-4 text-[14px] leading-relaxed text-slate-700">
+      <section class="mb-4 rounded-xl border border-dashed border-brand-300 bg-brand-50/60 p-3">
+        <h3 class="mb-2 font-bold text-brand-900">המשתמש לדוגמה</h3>
+        <div class="grid grid-cols-2 gap-1.5" role="radiogroup" aria-label="המשתמש לדוגמה">
+          ${[
+            ['m', 'דניאל', 'פנייה בלשון זכר'],
+            ['f', 'דנה', 'פנייה בלשון נקבה'],
+          ].map(
+            ([id, name, sub]) => html`<button
+              key=${id}
+              type="button"
+              role="radio"
+              aria-checked=${GENDER === id}
+              onClick=${() => GENDER !== id && setDemoGender(id)}
+              class=${cx('rounded-lg border px-3 py-1.5 text-start cursor-pointer', GENDER === id ? 'border-brand-600 bg-brand-100 text-brand-900' : 'border-brand-200 bg-white text-brand-800 hover:bg-brand-100')}
+            ><b class="block text-[14px]">${name}</b><small class="text-[12px]">${sub}</small></button>`,
+          )}
+        </div>
+      </section>
       <section class="mb-5 rounded-xl border border-dashed border-brand-300 bg-brand-50/60 p-3">
         <h3 class="mb-2 font-bold text-brand-900">מעבר מהיר בין המסכים</h3>
         <div class="flex flex-col gap-1.5">

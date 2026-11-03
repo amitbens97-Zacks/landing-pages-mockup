@@ -18,18 +18,47 @@ export const PARTNER = { name: 'הכריש', role: 'השותף העסקי' };
 export const STEP = { n: 9, name: 'דף נחיתה בקליק', chapterNo: 3, chapter: 'בניית מותג אישי' };
 export const PARTS = ['מה נכנס לדף', 'עיצוב', 'עריכה', 'פרסום'];
 
+// The demo user. FlowBiz knows how each user asked to be addressed (זכר / נקבה), and
+// the page follows it: the photo, the role and every first-person text ("אני חוזר" /
+// "אני חוזרת"). In the mockup: ?user=f or ?user=m, or the developer panel. Kept per browser.
+// Photos: stand-ins for the photo the user uploads (Unsplash, free license).
+const PHOTO = (id) => `https://images.unsplash.com/${id}?w=900&h=1080&fit=crop&crop=faces&q=80`;
+const PROFILES = {
+  m: { gender: 'm', firstName: 'דניאל', fullName: 'דניאל כהן', slug: 'danielcohen', email: 'daniel@example.co.il', role: 'יועץ שיווק לעסקי שירות קטנים', photo: PHOTO('photo-1771898343647-bd979ad8cca5') },
+  f: { gender: 'f', firstName: 'דנה', fullName: 'דנה כהן', slug: 'danacohen', email: 'dana@example.co.il', role: 'יועצת שיווק לעסקי שירות קטנים', photo: PHOTO('photo-1573497019940-1c28c88b4f3e') },
+};
+const GENDER_KEY = 'flowbiz-lp-gender';
+function pickGender() {
+  try {
+    const q = new URLSearchParams(location.search).get('user');
+    if (q === 'f' || q === 'm') {
+      localStorage.setItem(GENDER_KEY, q);
+      return q;
+    }
+    return localStorage.getItem(GENDER_KEY) === 'f' ? 'f' : 'm';
+  } catch {
+    return 'm';
+  }
+}
+export const GENDER = pickGender();
+// The masculine or feminine form, by how the user asked to be addressed.
+export const g = (m, f) => (GENDER === 'f' ? f : m);
+export function setDemoGender(v) {
+  try {
+    localStorage.setItem(GENDER_KEY, v);
+  } catch {}
+  const u = new URL(location.href);
+  u.searchParams.set('user', v);
+  location.href = u.toString();
+}
+
 export const USER = {
-  firstName: 'דניאל',
-  fullName: 'דניאל כהן',
+  ...PROFILES[GENDER],
   business: 'שיווק שעובד',
   slogan: 'שיווק שמביא פניות, לא רק לייקים',
   field: 'ייעוץ וליווי שיווק דיגיטלי לעסקי שירות מקומיים',
   audience: 'בעלי עסקי שירות עם 1 עד 5 עובדים',
-  role: 'יועץ שיווק לעסקי שירות קטנים',
   phone: '052-4567890',
-  email: 'daniel@example.co.il',
-  // Stand-in for the photo the user uploads (Unsplash, free license).
-  photo: 'https://images.unsplash.com/photo-1793059669358-16824127fd06?w=900&h=1080&fit=crop&crop=faces&q=80',
 };
 
 // What the user wrote in "דף המסרים". The page uses these words as they are.
@@ -73,7 +102,7 @@ export const BRAND = {
 };
 
 // The subdomain FlowBiz makes for the user (today: preview.flowbiz.co.il/l/<36-char id>).
-export const SUBDOMAIN = 'danielcohen';
+export const SUBDOMAIN = USER.slug;
 export const ROOT_DOMAIN = 'flowbiz.co.il';
 export const OLD_LINK = 'preview.flowbiz.co.il/l/7c1f9e2a-4b6d-4e8f-a1c3-9d2e5b7f0a64';
 export const pageUrl = (slug) => `${SUBDOMAIN}.${ROOT_DOMAIN}${slug ? `/${slug}` : ''}`;
@@ -170,13 +199,13 @@ const COMMON = {
   },
   testimonials: { title: 'מה אומרים הלקוחות', items: [] },
   faq: { title: 'שאלות נפוצות', items: OBJECTIONS },
-  contact: { title: 'בואו נדבר', sub: 'משאירים פרטים, ואני חוזר אליכם תוך יום עבודה.', cta: 'שליחה', wa: 'או בוואטסאפ' },
+  contact: { title: 'בואו נדבר', sub: `משאירים פרטים, ואני ${g('חוזר', 'חוזרת')} אליכם תוך יום עבודה.`, cta: 'שליחה', wa: 'או בוואטסאפ' },
 };
 
 export function businessContent() {
   return {
     hero: {
-      eyebrow: 'שיווק שעובד · דניאל כהן',
+      eyebrow: `${USER.business} · ${USER.fullName}`,
       title: 'שיווק שמביא פניות, לא רק לייקים',
       sub: 'ליווי אישי לעסקי שירות קטנים: אסטרטגיה כתובה, קמפיינים שעובדים ובקרה כל שבועיים.',
       cta: 'לשיחת היכרות',
@@ -243,7 +272,7 @@ export const ALTERNATIVES = {
     { title: 'נשמע מוכר?', items: ['הפרסום עולה כסף, והפניות לא מגיעות.', 'אין זמן לתוכן, אז הוא עולה רק לפעמים.', 'יש הרבה עצות, ואין תוכנית אחת.'] },
   ],
   about: [
-    { title: 'מי אני', text: 'אני דניאל. אחרי 12 שנים כמנהל שיווק בחברה גדולה, בניתי שיטה פשוטה לעסקים קטנים: מבינים מי הלקוח, בונים מסר אחד חד, ובודקים כל שבועיים מה עובד.' },
+    { title: 'מי אני', text: `אני ${USER.firstName}. אחרי 12 שנים ${g('כמנהל', 'כמנהלת')} שיווק בחברה גדולה, בניתי שיטה פשוטה לעסקים קטנים: מבינים מי הלקוח, בונים מסר אחד חד, ובודקים כל שבועיים מה עובד.` },
   ],
   band: [
     { kicker: 'פרסום בלי תוכנית הוא כסף שהולך לאיבוד.', text: 'ב-90 יום בונים יחד שיווק שמביא פניות.' },
