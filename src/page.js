@@ -6,6 +6,7 @@
 // photo fits the brand and white text always reads on it.
 import { html, useState, useEffect, useRef, Icon, cx } from './lib.js';
 import { templateOf, FONT_PAIRS, SECTION_TYPES, USER, PRODUCTS, ALTERNATIVES, pageUrl, bgSrc, g } from './data.js';
+import { startDrag } from './drag.js';
 
 // ---------- colors ----------
 const rgb = (h) => [1, 3, 5].map((i) => parseInt(h.slice(i, i + 2), 16));
@@ -203,8 +204,15 @@ function SecTools({ x, id, type, sel, photo }) {
   const tool = (icon, label, fn, on = true) =>
     on &&
     html`<button type="button" title=${label} aria-label=${label} class="lp-tool" onClick=${stop(fn)}><${Icon} name=${icon} size=${15} /><span class="max-[520px]:hidden">${label}</span></button>`;
+  const grab = (e) => {
+    const all = [...e.currentTarget.closest('.lp-page').querySelectorAll(':scope > [data-sec]')];
+    const items = all.slice(1, -1);
+    startDrag(e, { items, from: i - 1, label: meta.label, onTap: () => x.onSelect(id), onDrop: (_, to) => x.onMoveTo(id, to + 1) });
+  };
   return html`<div class=${cx('lp-tools', sel && 'is-on')} dir="rtl" onClick=${(e) => e.stopPropagation()}>
-    <span class="lp-tools-name"><${Icon} name=${meta.icon} size=${14} />${meta.label}</span>
+    <span class=${cx('lp-tools-name', !meta.fixed && 'lp-tools-drag')} title=${meta.fixed ? undefined : 'גרירה להזזת האזור'} onPointerDown=${meta.fixed ? undefined : grab}>
+      ${!meta.fixed && html`<${Icon} name="grip-vertical" size=${14} />`}<${Icon} name=${meta.icon} size=${14} />${meta.label}
+    </span>
     ${sel &&
     html`${tool('arrow-up', 'למעלה', () => x.onMove(id, -1), !meta.fixed && i > 1)}
       ${tool('arrow-down', 'למטה', () => x.onMove(id, 1), !meta.fixed && i < x.page.sections.length - 2)}
@@ -215,11 +223,23 @@ function SecTools({ x, id, type, sel, photo }) {
   </div>`;
 }
 
+// A card inside a section: its handle in the editor, and the marks the drag looks for.
+const item = (x, path, cls = '') => ({ class: cx(cls, x.editable && 'lp-item'), 'data-item': x.editable ? path : undefined });
+
+function Grip({ x, path, i }) {
+  if (!x.editable || getPath(x.page.content, path).length < 2) return null;
+  const grab = (e) => {
+    const items = [...e.currentTarget.closest('[data-sec]').querySelectorAll(`[data-item="${path}"]`)];
+    startDrag(e, { items, from: i, label: items[i].innerText.split('\n')[0], onDrop: (from, to) => x.onReorder(path, from, to) });
+  };
+  return html`<span class="lp-grip" role="button" title="גרירה לשינוי הסדר" aria-label="גרירה לשינוי הסדר" onPointerDown=${grab}><${Icon} name="grip-vertical" size=${14} /></span>`;
+}
+
 // ---------- the page ----------
 
-export function PageView({ page, editable = false, narrow = false, mid = false, selected, onSelect = () => {}, onEdit = () => {}, onMove, onHide, onRewrite, onPhoto, onBg, onAddTestimonial, onSeats, sticky = true, pages = [] }) {
+export function PageView({ page, editable = false, narrow = false, mid = false, selected, onSelect = () => {}, onEdit = () => {}, onMove, onMoveTo, onReorder, onHide, onRewrite, onPhoto, onBg, onAddTestimonial, onSeats, sticky = true, pages = [] }) {
   const th = themeOf(page);
-  const x = { page, editable, narrow, mid, selected, onSelect, onEdit, onMove, onHide, onRewrite, onPhoto, onBg, onAddTestimonial, onSeats, pages };
+  const x = { page, editable, narrow, mid, selected, onSelect, onEdit, onMove, onMoveTo, onReorder, onHide, onRewrite, onPhoto, onBg, onAddTestimonial, onSeats, pages };
   const shown = page.sections.filter((s) => editable || !s.hidden);
   // On the live page every call to action leads to the contact form.
   const toContact = (e) => {
@@ -355,11 +375,12 @@ function Pain({ x, th, id }) {
       ${items.map(
         (_, i) => html`<div
           key=${i}
-          class="flex items-start gap-3"
+          ...${item(x, 'pain.items', 'flex items-start gap-3')}
           style=${lines
             ? { borderBottom: `1px solid ${th.line}`, padding: '18px 0' }
             : { background: bold ? th.ink : th.card, color: bold ? '#fff' : th.ink, borderRadius: `${th.radius}px`, padding: '22px', border: bold ? 0 : `1px solid ${th.line}` }}
         >
+          <${Grip} x=${x} path="pain.items" i=${i} />
           <span class="grid h-8 w-8 shrink-0 place-items-center rounded-full font-bold" style=${{ background: bold ? th.A : th.accentSoft, color: bold ? onColor(th.A) : th.dark ? '#fff' : th.ink }}>${bold ? i + 1 : html`<${Icon} name="x" size=${16} />`}</span>
           <${T} x=${x} sec=${id} path=${`pain.items.${i}`} tag="p" multiline class="font-semibold" style=${{ fontSize: x.narrow ? '17px' : '19px' }} />
         </div>`,
@@ -399,7 +420,8 @@ function Method({ x, th, id }) {
     </div>
     <div class=${cx('mt-10 grid gap-6', !x.narrow && 'grid-cols-3')}>
       ${m.steps.map(
-        (s, i) => html`<div key=${i} class="relative" style=${{ textAlign: x.narrow ? 'start' : 'center' }}>
+        (s, i) => html`<div key=${i} ...${item(x, 'method.steps', 'relative')} style=${{ textAlign: x.narrow ? 'start' : 'center' }}>
+          <${Grip} x=${x} path="method.steps" i=${i} />
           <div class=${cx('flex items-center gap-4', !x.narrow && 'flex-col')}>
             <span class="grid h-14 w-14 shrink-0 place-items-center text-[22px] font-black" style=${{ fontFamily: th.head, background: th.P, color: th.onP, borderRadius: th.t.id === 'bold' || th.t.id === 'luxe' ? '2px' : '999px', boxShadow: `0 0 0 6px ${th.tint}${th.dark ? '22' : ''}` }}>${i + 1}</span>
             <div>
@@ -421,7 +443,8 @@ function Services({ x, th, id }) {
     <div class=${cx('mt-8 grid gap-4', !x.narrow && 'grid-cols-2')}>
       ${s.items.map((it, i) => {
         const own = x.pages.find((p) => p.kind === 'offer' && p.productId === it.id && p.status === 'live');
-        return html`<div key=${it.id} class="flex flex-col" style=${{ background: th.card, borderRadius: `${th.radius}px`, padding: '26px', border: `1px solid ${th.line}`, borderTop: th.t.id === 'bold' ? `6px solid ${th.P}` : `1px solid ${th.line}` }}>
+        return html`<div key=${it.id} ...${item(x, 'services.items', 'flex flex-col')} style=${{ background: th.card, borderRadius: `${th.radius}px`, padding: '26px', border: `1px solid ${th.line}`, borderTop: th.t.id === 'bold' ? `6px solid ${th.P}` : `1px solid ${th.line}` }}>
+          <${Grip} x=${x} path="services.items" i=${i} />
           <${T} x=${x} sec=${id} path=${`services.items.${i}.name`} tag="h3" class="mb-1.5" style=${{ fontFamily: th.head, fontWeight: 800, fontSize: '21px' }} />
           <${T} x=${x} sec=${id} path=${`services.items.${i}.desc`} tag="p" multiline class="mb-4 flex-1" style=${{ color: th.muted }} />
           <div class="flex items-center justify-between gap-3">
@@ -443,7 +466,8 @@ function Offer({ x, th, id }) {
         <${H2} x=${x} th=${th} path="offer.title" sec=${id} />
         <ul class="mt-6 flex flex-col gap-3">
           ${o.includes.map(
-            (_, i) => html`<li key=${i} class="flex items-start gap-3">
+            (_, i) => html`<li key=${i} ...${item(x, 'offer.includes', 'flex items-start gap-3')}>
+              <${Grip} x=${x} path="offer.includes" i=${i} />
               <span class="mt-0.5 grid h-7 w-7 shrink-0 place-items-center rounded-full" style=${{ background: th.P, color: th.onP }}><${Icon} name="check" size=${16} /></span>
               <${T} x=${x} sec=${id} path=${`offer.includes.${i}`} tag="span" class="font-semibold" style=${{ fontSize: x.narrow ? '17px' : '19px' }} />
             </li>`,
@@ -477,7 +501,8 @@ function Process({ x, th, id }) {
     <${H2} x=${x} th=${th} path="process.title" sec=${id} center />
     <ol class=${cx('mt-10 grid gap-4', !x.narrow && 'grid-cols-5')}>
       ${p.steps.map(
-        (_, i) => html`<li key=${i} class=${cx('flex gap-3', !x.narrow && 'flex-col items-center text-center')}>
+        (_, i) => html`<li key=${i} ...${item(x, 'process.steps', cx('flex gap-3', !x.narrow && 'flex-col items-center text-center'))}>
+          <${Grip} x=${x} path="process.steps" i=${i} />
           <span class="grid h-11 w-11 shrink-0 place-items-center font-black" style=${{ fontFamily: th.head, border: `2px solid ${th.P}`, color: th.dark ? '#fff' : th.P, borderRadius: th.t.id === 'bold' ? '2px' : '999px' }}>${i + 1}</span>
           <${T} x=${x} sec=${id} path=${`process.steps.${i}`} tag="span" class="font-semibold" />
         </li>`,
@@ -496,7 +521,8 @@ function About({ x, th, id }) {
         <${T} x=${x} sec=${id} path="about.text" tag="p" multiline class="mb-6" style=${{ color: th.muted, fontSize: x.narrow ? '17px' : '19px' }} />
         <div class="flex flex-wrap gap-2">
           ${a.creds.map(
-            (_, i) => html`<span key=${i} class="inline-flex items-center gap-1.5 px-3.5 py-1.5 text-[15px] font-bold" style=${{ background: th.dark ? 'rgba(255,255,255,.08)' : th.tint, borderRadius: th.btnR === 999 ? '999px' : '8px' }}>
+            (_, i) => html`<span key=${i} ...${item(x, 'about.creds', 'inline-flex items-center gap-1.5 px-3.5 py-1.5 text-[15px] font-bold')} style=${{ background: th.dark ? 'rgba(255,255,255,.08)' : th.tint, borderRadius: th.btnR === 999 ? '999px' : '8px' }}>
+              <${Grip} x=${x} path="about.creds" i=${i} />
               <${Icon} name="check" size=${15} /><${T} x=${x} sec=${id} path=${`about.creds.${i}`} />
             </span>`,
           )}
@@ -518,7 +544,8 @@ function Testimonials({ x, th, id }) {
         </div>`
       : html`<div class=${cx('mt-8 grid gap-4', !x.narrow && 'grid-cols-2')}>
           ${t.items.map(
-            (q, i) => html`<figure key=${i} class="p-6" style=${{ background: th.card, borderRadius: `${th.radius}px`, border: `1px solid ${th.line}` }}>
+            (q, i) => html`<figure key=${i} ...${item(x, 'testimonials.items', 'p-6')} style=${{ background: th.card, borderRadius: `${th.radius}px`, border: `1px solid ${th.line}` }}>
+              <${Grip} x=${x} path="testimonials.items" i=${i} />
               <${Icon} name="quote" size=${26} />
               <${T} x=${x} sec=${id} path=${`testimonials.items.${i}.text`} tag="blockquote" multiline class="my-3 text-[18px]" />
               <figcaption class="font-bold" style=${{ color: th.muted }}><${T} x=${x} sec=${id} path=${`testimonials.items.${i}.who`} /></figcaption>
@@ -535,7 +562,8 @@ function Faq({ x, th, id }) {
       <${H2} x=${x} th=${th} path="faq.title" sec=${id} center />
       <div class="mt-8">
         ${f.items.map(
-          (_, i) => html`<details key=${i} open=${x.editable || i === 0} class="group py-4" style=${{ borderBottom: `1px solid ${th.line}` }}>
+          (_, i) => html`<details key=${i} open=${x.editable || i === 0} ...${item(x, 'faq.items', 'group py-4')} style=${{ borderBottom: `1px solid ${th.line}` }}>
+            <${Grip} x=${x} path="faq.items" i=${i} />
             <summary onClick=${(e) => x.editable && e.preventDefault()} class="flex cursor-pointer list-none items-center justify-between gap-3 font-bold" style=${{ fontSize: x.narrow ? '18px' : '20px', fontFamily: th.head }}>
               <${T} x=${x} sec=${id} path=${`faq.items.${i}.q`} />
               <${Icon} name="chevron-down" size=${20} class="transition-transform group-open:rotate-180" />

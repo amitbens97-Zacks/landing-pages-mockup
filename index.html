@@ -139,6 +139,22 @@
       .lp-tools-name { display: inline-flex; align-items: center; gap: 4px; padding: 0 8px; font-size: 13px; font-weight: 800; color: #0038b8; }
       .lp-tool { display: inline-flex; align-items: center; gap: 4px; height: 30px; padding: 0 8px; border-radius: 8px; font-size: 13px; font-weight: 700; cursor: pointer; }
       .lp-tool:hover { background: #e9effb; color: #0038b8; }
+      .lp-tools-drag { height: 30px; border-radius: 8px; cursor: grab; touch-action: none; }
+      .lp-tools-drag:hover { background: #e9effb; }
+      .lp-item { position: relative; }
+      .lp-grip { position: absolute; top: -10px; inset-inline-end: -10px; z-index: 3; display: grid; place-items: center; height: 26px; width: 26px; border-radius: 8px; background: #fff; color: #0038b8; box-shadow: 0 3px 10px -3px rgba(45, 62, 102, .5); cursor: grab; touch-action: none; opacity: 0; transition: opacity .12s; }
+      .lp-item:hover > .lp-grip { opacity: 1; }
+      @media (hover: none) { .lp-sec-ed.is-sel .lp-grip { opacity: 1; } .lp-sec-ed.is-sel li.lp-item { padding-inline-end: 24px; } }
+      .lp-row-grip { display: grid; place-items: center; width: 20px; height: 34px; flex-shrink: 0; border-radius: 6px; color: #5f6775; cursor: grab; touch-action: none; }
+      .lp-row-grip:hover { background: #e9effb; color: #0038b8; }
+      .lp-ghost { position: fixed; top: 0; left: 0; z-index: 90; max-width: 240px; padding: 6px 12px; border-radius: 10px; background: #0038b8; color: #fff; font: 700 14px Assistant, sans-serif; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; box-shadow: 0 8px 22px -8px rgba(45, 62, 102, .6); pointer-events: none; direction: rtl; }
+      .is-dragging { opacity: .35; }
+      .lp-sec-ed.drop-before::after { box-shadow: inset 0 5px 0 0 #0038b8; }
+      .lp-sec-ed.drop-after::after { box-shadow: inset 0 -5px 0 0 #0038b8; }
+      .lp-item.drop-before, .lp-item.drop-after { outline: 2.5px dashed #0038b8; outline-offset: 4px; }
+      .lp-row.drop-before { box-shadow: 0 -3px 0 0 #0038b8; }
+      .lp-row.drop-after { box-shadow: 0 3px 0 0 #0038b8; }
+      body.lp-dragging, body.lp-dragging * { cursor: grabbing !important; user-select: none; }
       .lp-photo-tip { position: absolute; bottom: 10px; left: 50%; transform: translateX(-50%); display: none; align-items: center; gap: 6px; padding: 6px 12px; border-radius: 999px; background: rgba(20, 30, 50, .82); color: #fff; font: 700 13px Assistant, sans-serif; white-space: nowrap; }
       .lp-photo:hover .lp-photo-tip { display: inline-flex; }
       .lp-photo:hover { outline: 2px solid #0038b8; outline-offset: 3px; }
@@ -191,7 +207,7 @@
       // makes the browser always fetch the current modules.
       (function () {
         var v = Date.now(), imports = {};
-        ['components', 'data', 'devnotes', 'editor', 'lib', 'main', 'page', 'pages', 'screens', 'state', 'ui', 'viewswitch'].forEach(function (m) {
+        ['components', 'data', 'devnotes', 'drag', 'editor', 'lib', 'main', 'page', 'pages', 'screens', 'state', 'ui', 'viewswitch'].forEach(function (m) {
           var url = new URL('./src/' + m + '.js', location.href).href;
           imports[url] = url + '?v=' + v;
         });

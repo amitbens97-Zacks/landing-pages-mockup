@@ -1,12 +1,14 @@
 // The editor: the page itself in the middle (click a text to change it, click a photo
-// to replace it, click a section for its tools) and one side panel with four tabs:
-// sections, design, settings and the message check. On a phone the panel opens as a sheet.
+// to replace it, click a section for its tools, drag a section or a card by its handle)
+// and one side panel with four tabs: sections, design, settings and the message check.
+// On a phone the panel opens as a sheet.
 import { html, useState, useEffect, useRef, Icon, cx } from './lib.js';
 import { Button } from './components.js';
 import { Sheet, Field, inputCls, Chips, Tag, DeviceSwitch, BrowserFrame } from './ui.js';
 import { PageView, Thumb, setPath, getPath, mix, themeOf, BgPhoto } from './page.js';
 import { TEMPLATES, FONT_PAIRS, SECTION_TYPES, ALTERNATIVES, BRAND, USER, OLD_LINK, SUBDOMAIN, ROOT_DOMAIN, BG_PHOTOS, pageUrl, templateOf, bgSrc } from './data.js';
 import { checksOf } from './state.js';
+import { startDrag } from './drag.js';
 
 const TABS = [
   ['sections', 'אזורים', 'layout-list'],
@@ -28,6 +30,9 @@ export function Editor({ page, onChange, onUndo, onRedo, canUndo, canRedo, pages
   const [width, setWidth] = useState(1000);
   const canvas = useRef();
   const alts = useRef({});
+  // A drag can start while a text is being edited: leaving the text saves it first.
+  const latest = useRef();
+  latest.current = { page, onChange };
 
   useEffect(() => {
     const r = () => setPhone(isPhone());
@@ -59,6 +64,19 @@ export function Editor({ page, onChange, onUndo, onRedo, canUndo, canRedo, pages
       [list[i], list[j]] = [list[j], list[i]];
       set({ sections: list }, dir < 0 ? 'האזור עלה' : 'האזור ירד');
       setTimeout(() => scrollTo(id), 60);
+    },
+    onMoveTo: (id, to) => {
+      const { page: p, onChange: change } = latest.current;
+      const list = [...p.sections];
+      list.splice(to, 0, list.splice(list.findIndex((s) => s.id === id), 1)[0]);
+      change({ ...p, sections: list }, 'האזור הוזז');
+      setTimeout(() => scrollTo(id), 60);
+    },
+    onReorder: (path, from, to) => {
+      const { page: p, onChange: change } = latest.current;
+      const list = [...getPath(p.content, path)];
+      list.splice(to, 0, list.splice(from, 1)[0]);
+      change({ ...p, content: setPath(p.content, path, list) }, 'הסדר עודכן');
     },
     onHide: (id) => {
       const s = page.sections.find((x) => x.id === id);
@@ -121,7 +139,7 @@ export function Editor({ page, onChange, onUndo, onRedo, canUndo, canRedo, pages
         <span class="mx-1 h-6 w-px bg-line max-md:hidden"></span>
         <button type="button" class="lp-iconbtn" title="ביטול פעולה (Ctrl+Z)" aria-label="ביטול פעולה" disabled=${!canUndo} onClick=${onUndo}><${Icon} name="undo-2" size=${18} /></button>
         <button type="button" class="lp-iconbtn" title="חזרה על פעולה" aria-label="חזרה על פעולה" disabled=${!canRedo} onClick=${onRedo}><${Icon} name="redo-2" size=${18} /></button>
-        <p class="ms-2 hidden text-[13px] font-semibold text-muted lg:block">לחיצה על טקסט משנה אותו. לחיצה על אזור פותחת את הכלים שלו.</p>
+        <p class="ms-2 hidden text-[13px] font-semibold text-muted lg:block">לחיצה על טקסט משנה אותו. לחיצה על אזור פותחת את הכלים שלו. גרירה בידית מזיזה.</p>
         <button type="button" class="ms-auto inline-flex h-9 items-center gap-1.5 rounded-lg px-3 text-[14px] font-bold text-brand-600 hover:bg-brand-50 cursor-pointer" onClick=${onPreview}>
           <${Icon} name="external-link" size=${16} />תצוגה מקדימה
         </button>
@@ -166,16 +184,24 @@ function SectionsPanel({ page, set, selected, scrollTo, actions }) {
     set({ sections: list, content }, 'האזור נוסף');
     scrollTo(id);
   };
+  const grab = (e, i) => {
+    const items = [...e.currentTarget.closest('ol').children].slice(1, -1);
+    const s = page.sections[i];
+    startDrag(e, { items, from: i - 1, label: SECTION_TYPES[s.type].label, onDrop: (_, to) => actions.onMoveTo(s.id, to + 1) });
+  };
   return html`<div>
-    <p class="mb-3 text-[14px] text-muted">הסדר כאן הוא הסדר בדף. "פתיחה" ו"יצירת קשר" תמיד ראשון ואחרון.</p>
+    <p class="mb-3 text-[14px] text-muted">הסדר כאן הוא הסדר בדף. גוררים שורה כדי להזיז אזור. "פתיחה" ו"יצירת קשר" תמיד ראשון ואחרון.</p>
     <ol class="flex flex-col gap-1.5">
       ${page.sections.map((s, i) => {
         const meta = SECTION_TYPES[s.type];
         const empty = s.type === 'testimonials' && !(page.content.testimonials?.items || []).length;
         return html`<li
           key=${s.id}
-          class=${cx('group flex items-center gap-2 rounded-xl border-[1.5px] bg-white px-2.5 py-2', selected === s.id ? 'border-brand-600' : 'border-line', s.hidden && 'opacity-55')}
+          class=${cx('lp-row group flex items-center gap-1.5 rounded-xl border-[1.5px] bg-white px-2 py-2', selected === s.id ? 'border-brand-600' : 'border-line', s.hidden && 'opacity-55')}
         >
+          ${meta.fixed
+            ? html`<span class="grid w-5 shrink-0 place-items-center text-faint" title="קבוע במקום"><${Icon} name="lock" size=${13} /></span>`
+            : html`<span class="lp-row-grip" role="button" title="גרירה להזזת האזור" aria-label=${`גרירה: ${meta.label}`} onPointerDown=${(e) => grab(e, i)}><${Icon} name="grip-vertical" size=${16} /></span>`}
           <button type="button" class="flex min-w-0 flex-1 items-center gap-2 text-start cursor-pointer" onClick=${() => scrollTo(s.id)}>
             <span class="fb-chip-ic sketch-chip h-8 w-8 shrink-0"><${Icon} name=${meta.icon} size=${16} /></span>
             <span class="min-w-0">
